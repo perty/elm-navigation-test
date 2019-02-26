@@ -1,8 +1,11 @@
 module Main exposing (Model, Msg(..), init, main)
 
-import Browser
+import Browser exposing (UrlRequest(..))
 import Browser.Navigation
+import Html exposing (div)
 import Platform exposing (Program)
+import Routing.Router
+import SharedState
 import Time exposing (Posix)
 import Url exposing (Url)
 
@@ -11,12 +14,13 @@ type Msg
     = UrlChange Url
     | LinkClicked Browser.UrlRequest
     | TimeChange Posix
-    | RouterMsg Router.Msg
+    | RouterMsg Routing.Router.Msg
 
 
 type alias Model =
     { navKey : Browser.Navigation.Key
     , url : Url
+    , sharedState : SharedState.SharedState
     }
 
 
@@ -36,6 +40,7 @@ init : () -> Url -> Browser.Navigation.Key -> ( Model, Cmd Msg )
 init _ url navKey =
     ( { url = url
       , navKey = navKey
+      , sharedState = SharedState.init
       }
     , Cmd.none
     )
@@ -48,7 +53,7 @@ update msg model =
             updateTime model time
 
         UrlChange url ->
-            updateRouter { model | url = url } (Router.UrlChange url)
+            updateRouter { model | url = url } (Routing.Router.UrlChange url)
 
         RouterMsg routerMsg ->
             updateRouter model routerMsg
@@ -64,40 +69,26 @@ update msg model =
 
 updateTime : Model -> Posix -> ( Model, Cmd Msg )
 updateTime model time =
-    case model.appState of
-        NotReady _ ->
-            ( { model | appState = NotReady time }
-            , Cmd.none
-            )
-
-        Ready sharedState routerModel ->
-            ( { model | appState = Ready (SharedState.update sharedState (UpdateTime time)) routerModel }
-            , Cmd.none
-            )
-
-        FailedToInitialize ->
-            ( model, Cmd.none )
+    ( { model | sharedState = SharedState.update model.sharedState (SharedState.UpdateTime time) }
+    , Cmd.none
+    )
 
 
-updateRouter : Model -> Router.Msg -> ( Model, Cmd Msg )
+updateRouter : Model -> Routing.Router.Msg -> ( Model, Cmd Msg )
 updateRouter model routerMsg =
-    case model.appState of
-        Ready sharedState routerModel ->
-            let
-                nextSharedState =
-                    SharedState.update sharedState sharedStateUpdate
+    let
+        nextSharedState =
+            SharedState.update model.sharedState sharedStateUpdate
 
-                ( nextRouterModel, routerCmd, sharedStateUpdate ) =
-                    Router.update sharedState routerMsg routerModel
-            in
-            ( { model | appState = Ready nextSharedState nextRouterModel }
-            , Cmd.map RouterMsg routerCmd
-            )
+        ( nextRouterModel, routerCmd, sharedStateUpdate ) =
+            Routing.Router.update model.sharedState routerMsg routerModel
+    in
+    ( { model | sharedState = nextSharedState nextRouterModel }
+    , Cmd.map RouterMsg routerCmd
+    )
 
-        _ ->
-            let
-                _ =
-                    Debug.log "We got a router message even though the app is not ready?"
-                        routerMsg
-            in
-            ( model, Cmd.none )
+
+view : Model -> Browser.Document Msg
+view model =
+    div []
+        []
