@@ -1,4 +1,7 @@
-module Pages.Home exposing (Model, Msg(..), update)
+module Pages.Home exposing (Model, Msg, init, update, view)
+
+import Html
+import SharedState
 
 
 type alias Model =
@@ -9,6 +12,16 @@ type Msg
     = NoOp
 
 
-update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
-    ( model, Cmd.none )
+init : Model
+init =
+    {}
+
+
+update : SharedState.SharedState -> Msg -> Model -> ( Model, Cmd Msg, SharedState.SharedStateUpdate )
+update sharedState msg model =
+    ( model, Cmd.none, SharedState.NoUpdate )
+
+
+view : SharedState.SharedState -> Model -> Html.Html Msg
+view sharedState model =
+    Html.div [] []

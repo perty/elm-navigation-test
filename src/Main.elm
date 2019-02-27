@@ -2,7 +2,6 @@ module Main exposing (Model, Msg(..), init, main)
 
 import Browser exposing (UrlRequest(..))
 import Browser.Navigation
-import Html exposing (div)
 import Platform exposing (Program)
 import Routing.Router
 import SharedState
@@ -21,7 +20,24 @@ type alias Model =
     { navKey : Browser.Navigation.Key
     , url : Url
     , sharedState : SharedState.SharedState
+    , routerModel : Routing.Router.Model
     }
+
+
+initialModel : Url -> Browser.Navigation.Key -> Model
+initialModel url navKey =
+    { navKey = navKey
+    , url = url
+    , sharedState = SharedState.init navKey
+    , routerModel = Routing.Router.init
+    }
+
+
+init : () -> Url -> Browser.Navigation.Key -> ( Model, Cmd Msg )
+init _ url navKey =
+    ( initialModel url navKey
+    , Cmd.none
+    )
 
 
 main : Program () Model Msg
@@ -34,16 +50,6 @@ main =
         , onUrlRequest = LinkClicked
         , subscriptions = \_ -> Time.every 1000 TimeChange
         }
-
-
-init : () -> Url -> Browser.Navigation.Key -> ( Model, Cmd Msg )
-init _ url navKey =
-    ( { url = url
-      , navKey = navKey
-      , sharedState = SharedState.init
-      }
-    , Cmd.none
-    )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -81,14 +87,13 @@ updateRouter model routerMsg =
             SharedState.update model.sharedState sharedStateUpdate
 
         ( nextRouterModel, routerCmd, sharedStateUpdate ) =
-            Routing.Router.update model.sharedState routerMsg routerModel
+            Routing.Router.update model.sharedState routerMsg model.routerModel
     in
-    ( { model | sharedState = nextSharedState nextRouterModel }
+    ( { model | sharedState = nextSharedState, routerModel = nextRouterModel }
     , Cmd.map RouterMsg routerCmd
     )
 
 
 view : Model -> Browser.Document Msg
 view model =
-    div []
-        []
+    Routing.Router.view RouterMsg model.sharedState model.routerModel

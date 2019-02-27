@@ -1,20 +1,25 @@
 module SharedState exposing (SharedState, SharedStateUpdate(..), init, update)
 
-import Time exposing (Posix)
+import Browser.Navigation
+import Time
 
 
 type alias SharedState =
-    { currentTime : Maybe Posix
+    { currentTime : Maybe Time.Posix
+    , navKey : Browser.Navigation.Key
     }
 
 
 type SharedStateUpdate
     = NoUpdate
-    | UpdateTime Posix
+    | UpdateTime Time.Posix
 
 
-init =
-    SharedState Nothing
+init : Browser.Navigation.Key -> SharedState
+init navKey =
+    { currentTime = Nothing
+    , navKey = navKey
+    }
 
 
 update : SharedState -> SharedStateUpdate -> SharedState

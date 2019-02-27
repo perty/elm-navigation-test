@@ -1,19 +1,21 @@
 module Routing.Helpers exposing (Route(..), parseUrl, reverseRoute, routeParser)
 
+import Url exposing (Url)
 import Url.Parser
 
 
 type Route
     = HomeRoute
-    | SettingsRoute
+    | ListingRoute
+    | DetailsRoute
     | NotFoundRoute
 
 
 reverseRoute : Route -> String
 reverseRoute route =
     case route of
-        SettingsRoute ->
-            "#/settings"
+        ListingRoute ->
+            "#/listing"
 
         _ ->
             "#/"
@@ -22,7 +24,7 @@ reverseRoute route =
 routeParser =
     Url.Parser.oneOf
         [ Url.Parser.map HomeRoute Url.Parser.top
-        , Url.Parser.map SettingsRoute (Url.Parser.s "settings")
+        , Url.Parser.map ListingRoute (Url.Parser.s "listing")
         ]
 
 
