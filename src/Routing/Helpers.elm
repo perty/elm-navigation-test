@@ -1,6 +1,6 @@
 module Routing.Helpers exposing (Route(..), parseUrl, reverseRoute, routeParser)
 
-import Url exposing (Url)
+import Url
 import Url.Parser
 
 
@@ -13,23 +13,35 @@ type Route
 
 reverseRoute : Route -> String
 reverseRoute route =
-    case route of
+    case Debug.log "reverseRoute " route of
+        HomeRoute ->
+            "/"
+
         ListingRoute ->
             "#/listing"
 
-        _ ->
+        DetailsRoute ->
+            "#/details"
+
+        NotFoundRoute ->
             "#/"
 
 
+routeParser : Url.Parser.Parser (Route -> b) b
 routeParser =
     Url.Parser.oneOf
         [ Url.Parser.map HomeRoute Url.Parser.top
         , Url.Parser.map ListingRoute (Url.Parser.s "listing")
+        , Url.Parser.map DetailsRoute (Url.Parser.s "details")
         ]
 
 
-parseUrl : Url -> Route
+parseUrl : Url.Url -> Route
 parseUrl url =
+    let
+        _ =
+            Debug.log "parseUrl" url
+    in
     case url.fragment of
         Nothing ->
             HomeRoute

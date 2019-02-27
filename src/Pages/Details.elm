@@ -24,4 +24,8 @@ update sharedState msg model =
 
 view : SharedState.SharedState -> Model -> Html.Html Msg
 view sharedState model =
-    Html.div [] []
+    Html.div []
+        [ Html.h1 []
+            [ Html.text "Here the details."
+            ]
+        ]

@@ -75,13 +75,27 @@ updateHome sharedState model msg =
 
 
 updateListing : SharedState.SharedState -> Model -> Pages.Listing.Msg -> ( Model, Cmd Msg, SharedState.SharedStateUpdate )
-updateListing sharedState model listingMsg =
-    ( model, Cmd.none, SharedState.NoUpdate )
+updateListing sharedState model msg =
+    let
+        ( nextModel, cmd, sharedStateUpdate ) =
+            Pages.Listing.update sharedState msg model.homeModel
+    in
+    ( { model | homeModel = nextModel }
+    , Cmd.map ListingMsg cmd
+    , sharedStateUpdate
+    )
 
 
 updateDetails : SharedState.SharedState -> Model -> Pages.Details.Msg -> ( Model, Cmd Msg, SharedState.SharedStateUpdate )
-updateDetails sharedState model detailMsg =
-    ( model, Cmd.none, SharedState.NoUpdate )
+updateDetails sharedState model msg =
+    let
+        ( nextModel, cmd, sharedStateUpdate ) =
+            Pages.Details.update sharedState msg model.homeModel
+    in
+    ( { model | homeModel = nextModel }
+    , Cmd.map DetailMsg cmd
+    , sharedStateUpdate
+    )
 
 
 view : (Msg -> msg) -> SharedState.SharedState -> Model -> Browser.Document msg
