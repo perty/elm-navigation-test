@@ -48,13 +48,13 @@ main =
         , view = view
         , onUrlChange = UrlChange
         , onUrlRequest = LinkClicked
-        , subscriptions = \_ -> Time.every 1000 TimeChange
+        , subscriptions = \_ -> Time.every 60000 TimeChange
         }
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    case msg of
+    case Debug.log "Main msg: " msg of
         TimeChange time ->
             updateTime model time
 

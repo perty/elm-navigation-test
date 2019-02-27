@@ -38,7 +38,7 @@ type Msg
 
 update : SharedState.SharedState -> Msg -> Model -> ( Model, Cmd Msg, SharedState.SharedStateUpdate )
 update sharedState msg model =
-    case msg of
+    case Debug.log "Router msg: " msg of
         UrlChange location ->
             ( { model | route = Routing.Helpers.parseUrl location }
             , Cmd.none
@@ -46,10 +46,11 @@ update sharedState msg model =
             )
 
         NavigateTo route ->
-            ( model
-            , Browser.Navigation.pushUrl sharedState.navKey (Routing.Helpers.reverseRoute route)
-            , SharedState.NoUpdate
-            )
+            Debug.log "Router navigate to "
+                ( model
+                , Browser.Navigation.pushUrl sharedState.navKey (Routing.Helpers.reverseRoute route)
+                , SharedState.NoUpdate
+                )
 
         HomeMsg homeMsg ->
             updateHome sharedState model homeMsg
