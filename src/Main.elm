@@ -29,12 +29,16 @@ initialModel url navKey =
     { navKey = navKey
     , url = url
     , sharedState = SharedState.init navKey
-    , routerModel = Routing.Router.init
+    , routerModel = Routing.Router.init url
     }
 
 
 init : () -> Url -> Browser.Navigation.Key -> ( Model, Cmd Msg )
 init _ url navKey =
+    let
+        _ =
+            Debug.log "init location" (Url.toString url)
+    in
     ( initialModel url navKey
     , Cmd.none
     )

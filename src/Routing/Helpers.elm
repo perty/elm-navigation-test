@@ -1,13 +1,14 @@
 module Routing.Helpers exposing (Route(..), parseUrl, reverseRoute, routeParser)
 
 import Url
-import Url.Parser
+import Url.Parser exposing ((<?>))
+import Url.Parser.Query
 
 
 type Route
     = HomeRoute
     | ListingRoute
-    | DetailsRoute
+    | DetailsRoute (Maybe Int)
     | NotFoundRoute
 
 
@@ -18,13 +19,13 @@ reverseRoute route =
             "/"
 
         ListingRoute ->
-            "#/listing"
+            "listing"
 
-        DetailsRoute ->
-            "#/details"
+        DetailsRoute n ->
+            "details?id=" ++ String.fromInt (Maybe.withDefault 0 n)
 
         NotFoundRoute ->
-            "#/"
+            "/"
 
 
 routeParser : Url.Parser.Parser (Route -> b) b
@@ -32,8 +33,13 @@ routeParser =
     Url.Parser.oneOf
         [ Url.Parser.map HomeRoute Url.Parser.top
         , Url.Parser.map ListingRoute (Url.Parser.s "listing")
-        , Url.Parser.map DetailsRoute (Url.Parser.s "details")
+        , Url.Parser.map DetailsRoute detailsParser
         ]
+
+
+detailsParser : Url.Parser.Parser (Maybe Int -> a) a
+detailsParser =
+    Url.Parser.s "details" <?> Url.Parser.Query.int "id"
 
 
 parseUrl : Url.Url -> Route
@@ -42,11 +48,4 @@ parseUrl url =
         _ =
             Debug.log "parseUrl" url
     in
-    case url.fragment of
-        Nothing ->
-            HomeRoute
-
-        Just fragment ->
-            { url | path = fragment, fragment = Nothing }
-                |> Url.Parser.parse routeParser
-                |> Maybe.withDefault NotFoundRoute
+    Url.Parser.parse routeParser url |> Maybe.withDefault NotFoundRoute

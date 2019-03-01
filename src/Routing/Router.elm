@@ -9,6 +9,7 @@ import Pages.Listing
 import Routing.Helpers
 import SharedState
 import Url
+import Url.Parser
 
 
 type alias Model =
@@ -19,9 +20,9 @@ type alias Model =
     }
 
 
-init : Model
-init =
-    { route = Routing.Helpers.HomeRoute
+init : Url.Url -> Model
+init url =
+    { route = Maybe.withDefault Routing.Helpers.HomeRoute (Url.Parser.parse Routing.Helpers.routeParser url)
     , homeModel = Pages.Home.init
     , listingModel = Pages.Listing.init
     , detailsModel = Pages.Details.init
@@ -78,9 +79,9 @@ updateListing : SharedState.SharedState -> Model -> Pages.Listing.Msg -> ( Model
 updateListing sharedState model msg =
     let
         ( nextModel, cmd, sharedStateUpdate ) =
-            Pages.Listing.update sharedState msg model.homeModel
+            Pages.Listing.update sharedState msg model.listingModel
     in
-    ( { model | homeModel = nextModel }
+    ( { model | listingModel = nextModel }
     , Cmd.map ListingMsg cmd
     , sharedStateUpdate
     )
@@ -90,9 +91,9 @@ updateDetails : SharedState.SharedState -> Model -> Pages.Details.Msg -> ( Model
 updateDetails sharedState model msg =
     let
         ( nextModel, cmd, sharedStateUpdate ) =
-            Pages.Details.update sharedState msg model.homeModel
+            Pages.Details.update sharedState msg model.detailsModel
     in
-    ( { model | homeModel = nextModel }
+    ( { model | detailsModel = nextModel }
     , Cmd.map DetailMsg cmd
     , sharedStateUpdate
     )
@@ -109,8 +110,8 @@ view msgMapper sharedState model =
                 Routing.Helpers.ListingRoute ->
                     "Listing"
 
-                Routing.Helpers.DetailsRoute ->
-                    "Details"
+                Routing.Helpers.DetailsRoute n ->
+                    "Details for id " ++ String.fromInt (Maybe.withDefault 0 n)
 
                 Routing.Helpers.NotFoundRoute ->
                     "Not found"
@@ -137,9 +138,9 @@ pageView sharedState model =
             Routing.Helpers.ListingRoute ->
                 Pages.Listing.view sharedState model.listingModel |> Html.map ListingMsg
 
-            Routing.Helpers.DetailsRoute ->
-                Pages.Details.view sharedState model.detailsModel |> Html.map DetailMsg
+            Routing.Helpers.DetailsRoute n ->
+                Pages.Details.view sharedState (Pages.Details.Model n) |> Html.map DetailMsg
 
             Routing.Helpers.NotFoundRoute ->
-                Html.h1 [] [ Html.text "404 :(" ]
+                Html.h1 [] [ Html.text "Page not found." ]
         ]
