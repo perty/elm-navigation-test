@@ -1,0 +1,25 @@
+{
+  "name": "brfkoll",
+  "version": "1.0.0",
+  "description": "Source code in Elm",
+  "main": "app.js",
+  "dependencies": {
+    "express": "^4.14.0"
+  },
+  "devDependencies": {
+    "express": "^4.14.0"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/perty/elm-navigation"
+  },
+  "author": "Per Lundholm <per@artcomputer.se>",
+  "license": "BSD3",
+  "bugs": {
+    "url": "https://github.com/perty/elm-navigation/issues"
+  },
+  "homepage": "https://github.com/perty/elm-navigation"
+}
