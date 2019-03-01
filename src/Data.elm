@@ -70,8 +70,13 @@ data =
     ]
 
 
-findById : List Book -> Int -> Maybe Book
-findById books id =
+findById : Int -> Maybe Book
+findById id =
+    findByIdHelper data id
+
+
+findByIdHelper : List Book -> Int -> Maybe Book
+findByIdHelper books id =
     case books of
         [] ->
             Nothing
@@ -81,4 +86,4 @@ findById books id =
                 Just head
 
             else
-                findById tail id
+                findByIdHelper tail id

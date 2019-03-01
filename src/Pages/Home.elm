@@ -6,7 +6,6 @@ import Html.Attributes
 import Html.Events
 import Routing.Helpers
 import SharedState
-import Time
 
 
 type alias Model =
@@ -34,23 +33,11 @@ update sharedState msg model =
 
 
 view : SharedState.SharedState -> Model -> Html.Html Msg
-view sharedState model =
+view sharedState _ =
     Html.div []
-        [ Html.text "This is the home page. "
-        , case sharedState.currentTime of
-            Nothing ->
-                Html.text "No time yet."
-
-            Just t ->
-                Html.text
-                    ("The time is now: "
-                        ++ String.fromInt (Time.toHour Time.utc t)
-                        ++ ":"
-                        ++ String.fromInt (Time.toMinute Time.utc t)
-                        ++ ":"
-                        ++ String.fromInt (Time.toSecond Time.utc t)
-                        ++ " UTC "
-                    )
+        [ SharedState.view sharedState
+        , Html.hr [] []
+        , Html.h1 [] [ Html.text "This is the home page. " ]
         , Html.input
             [ Html.Attributes.type_ "button"
             , Html.Events.onClick (NavigateTo Routing.Helpers.ListingRoute)

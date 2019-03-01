@@ -75,6 +75,16 @@ Main msg: : LinkClicked (Internal { fragment = Nothing, host = "localhost", path
 Main msg: : UrlChange { fragment = Nothing, host = "localhost", path = "/details", port_ = Just 3005, protocol = Http, query = Just "id=4" }
 ````
 
+### Shared state update
+
+The `Listing` page demonstrates how a page can update the shared state. When user
+press the _button_ to select a book, `Listing` returns a `SharedStateUpdate AddBookId`
+as result from the update function. Clicking on the link has not that effect.
+
+In the `Main.updateRouter` function,
+`SharedState.update`  gets the `SharedUpdate` message and 
+has the opportunity to update the shared state.
+
 ## Structure and Responsibilities
 
 The main module relies on the `Routing.Router` module to know about the

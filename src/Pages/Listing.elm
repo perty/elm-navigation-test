@@ -15,7 +15,7 @@ type alias Model =
 
 
 type Msg
-    = NavigateTo Routing.Helpers.Route
+    = NavigateTo Int
 
 
 init : Model
@@ -27,22 +27,28 @@ init =
 update : SharedState.SharedState -> Msg -> Model -> ( Model, Cmd Msg, SharedState.SharedStateUpdate )
 update sharedState msg model =
     case msg of
-        NavigateTo route ->
+        NavigateTo id ->
             ( model
-            , Browser.Navigation.pushUrl sharedState.navKey (Routing.Helpers.reverseRoute route)
-            , SharedState.NoUpdate
+            , Browser.Navigation.pushUrl sharedState.navKey (Routing.Helpers.reverseRoute (Routing.Helpers.DetailsRoute (Just id)))
+            , SharedState.AddBookId id
             )
 
 
 view : SharedState.SharedState -> Model -> Html.Html Msg
-view _ model =
+view sharedState model =
     Html.div []
-        ([ Html.h1 []
-            [ Html.text "The Listings"
-            ]
+        ([ SharedState.view sharedState
+         , Html.hr [] []
+         , headline
          ]
             ++ List.map dataRow model.books
         )
+
+
+headline =
+    Html.h1 []
+        [ Html.text "The Listings"
+        ]
 
 
 dataRow : Data.Book -> Html.Html Msg
@@ -55,7 +61,7 @@ dataRow data =
                 [ Html.text data.author.name ]
             , Html.input
                 [ Html.Attributes.type_ "button"
-                , Html.Events.onClick (NavigateTo (Routing.Helpers.DetailsRoute (Just data.id)))
+                , Html.Events.onClick (NavigateTo data.id)
                 , Html.Attributes.value data.title
                 ]
                 []

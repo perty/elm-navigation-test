@@ -52,7 +52,7 @@ main =
         , view = view
         , onUrlChange = UrlChange
         , onUrlRequest = LinkClicked
-        , subscriptions = \_ -> Time.every 60000 TimeChange
+        , subscriptions = \_ -> Time.every 10000 TimeChange
         }
 
 
@@ -87,11 +87,11 @@ updateTime model time =
 updateRouter : Model -> Routing.Router.Msg -> ( Model, Cmd Msg )
 updateRouter model routerMsg =
     let
-        nextSharedState =
-            SharedState.update model.sharedState sharedStateUpdate
-
         ( nextRouterModel, routerCmd, sharedStateUpdate ) =
             Routing.Router.update model.sharedState routerMsg model.routerModel
+
+        nextSharedState =
+            SharedState.update model.sharedState sharedStateUpdate
     in
     ( { model | sharedState = nextSharedState, routerModel = nextRouterModel }
     , Cmd.map RouterMsg routerCmd

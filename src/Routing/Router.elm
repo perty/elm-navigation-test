@@ -1,7 +1,6 @@
 module Routing.Router exposing (Model, Msg(..), init, update, view)
 
 import Browser
-import Browser.Navigation
 import Html exposing (div)
 import Pages.Details
 import Pages.Home
@@ -31,7 +30,6 @@ init url =
 
 type Msg
     = UrlChange Url.Url
-    | NavigateTo Routing.Helpers.Route
     | HomeMsg Pages.Home.Msg
     | ListingMsg Pages.Listing.Msg
     | DetailMsg Pages.Details.Msg
@@ -45,13 +43,6 @@ update sharedState msg model =
             , Cmd.none
             , SharedState.NoUpdate
             )
-
-        NavigateTo route ->
-            Debug.log "Router navigate to "
-                ( model
-                , Browser.Navigation.pushUrl sharedState.navKey (Routing.Helpers.reverseRoute route)
-                , SharedState.NoUpdate
-                )
 
         HomeMsg homeMsg ->
             updateHome sharedState model homeMsg

@@ -29,13 +29,15 @@ update _ msg model =
 
 
 view : SharedState.SharedState -> Model -> Html.Html Msg
-view _ model =
+view shared model =
     let
         book =
-            Data.findById Data.data (Maybe.withDefault 0 model.id)
+            Data.findById (Maybe.withDefault 0 model.id)
     in
     Html.div []
-        [ case book of
+        [ SharedState.view shared
+        , Html.hr [] []
+        , case book of
             Nothing ->
                 Html.text "Book not found."
 
