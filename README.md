@@ -1,15 +1,19 @@
 # elm-navigation-test
-Showing how to set up navigation in Elm.
+Showing how to set up navigation in Elm. Parsing URL with query
+parameters.
 
-This based on the shared state pattern. https://github.com/ohanhi/elm-shared-state
+This based on the shared state pattern by Ossi Hanhinen. 
+See https://github.com/ohanhi/elm-shared-state .
 
 ## Goal
 
 I just wanted to make my own to thoroughly understand it.
 
-* Proper URLs, not fragments. Use a node server to catch
-all requests and return the index file. Necessary behavior for a 
-back end serving a SPA. 
+* Parse URL like http://host:port/details?id=2 even when
+that is the starting URL.
+
+* Use a Node server to catch all requests and return the index file. 
+Necessary behavior for a back end serving a SPA. 
  
 * Explicit code. No import with "as", just full path.
 Not for production but makes it easier when trying to understand where
@@ -17,42 +21,66 @@ things come from.
 
 * Generous use of Debug.log. Again, not for production but for understanding.
 
-* Good readme (you be the judge)
+* Good readme (you will be the judge)
 
 * No fancy graphics or asynchronous loading. For that, see Ossi's 
 repository mentioned above.
 
 ## The application
 
-There are three pages: Home, Listing and Details. The home page is of course
-the starting point where there is one button that takes you to the listings
-page and changes the URL.
-
-The listing page lists a number of items. Each has an id and clicking 
-on them sends you to the details page with id supplied as a query parameter.
+The application shows a list of books on the Listing page which is reached 
+from the Home page. Clicking on a book takes you to the Details page for that
+book.
 
 
 ## Flow
 
-What happens when I click the button on the Home Page?
+When the application starts up, it will be given the current URL
+which may be like `http://localhost:3005/details?id=3`.
 
-The home page will create a message `NavigateTo` which is wrapped by
-`updateRouter` with `RouterMsg`. So there is message within a message within
-a message.
+What happens when I click the Listing button on the Home Page?
 
-That reaches the main update function which case statement identifies it 
-as a `Router` message. So `updateRouter`is called which sees the `HomeMsg`
-tag and calls `updateHome`. That update calls `pushUrl` which returns an
+The home page will create a message `NavigateTo ListingRoute` which is
+wrapped by `updateRouter` with `RouterMsg`. So there is message within 
+a message within a message.
+
+That reaches the main `update` function which case statement identifies it 
+as a `Router` message. So `Router.updater` is called which sees the `HomeMsg`
+tag and calls `Home.update`. 
+That update calls `Browser.Navigation.pushUrl` which creates an
 `UrlChange` message. 
 
-Back in the main update function, we see it is an UrlChange message and
-pass that on to `updateRouter`.
+Back in the main update function, we see it is an `UrlChange` message and
+pass that on to `Router.update`. The URL is parsed. The `route` of
+`Route.Model` now gets the value `ListingRoute`. 
 
 ````
 Main msg: : RouterMsg (HomeMsg (NavigateTo ListingRoute))
 Router msg: : HomeMsg (NavigateTo ListingRoute)
-Home navigate to : ({},<internals>,NoUpdate)
-Main msg: : UrlChange { fragment = Just "/listing", host = "localhost", path = "/", port_ = Just 8000, protocol = Http, query = Nothing }
-Router msg: : UrlChange { fragment = Just "/listing", host = "localhost", path = "/", port_ = Just 8000, protocol = Http, query = Nothing }
-```
+Main msg: : UrlChange { fragment = Nothing, host = "localhost", path = "/listing", port_ = Just 3005, protocol = Http, query = Nothing }
+Router msg: : UrlChange { fragment = Nothing, host = "localhost", path = "/listing", port_ = Just 3005, protocol = Http, query = Nothing }
+parseUrl: { fragment = Nothing, host = "localhost", path = "/listing", port_ = Just 3005, protocol = Http, query = Nothing }
+````
+
+What differs when we are selecting a book from the list is that the
+URL parser picks out the value of the query parameter (`Maybe Int`)
+and that is passed on when the view is rendered. See `Router.pageView`.
+
+Note that the list has two options for navigating to the details, both 
+a link and a button. The application logic handles the link by responding
+to the `LinkClicked` event.
+
+````
+Main msg: : LinkClicked (Internal { fragment = Nothing, host = "localhost", path = "/details", port_ = Just 3005, protocol = Http, query = Just "id=4" })
+Main msg: : UrlChange { fragment = Nothing, host = "localhost", path = "/details", port_ = Just 3005, protocol = Http, query = Just "id=4" }
+````
+
+## Structure and Responsibilities
+
+The main module relies on the `Routing.Router` module to know about the
+pages of the application and route the messages to them. 
+The `Routing.Helper` is used by both the pages and the router so it is
+partially motivated to avoid circular dependencies.
+
+
 
