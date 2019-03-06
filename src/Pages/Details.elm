@@ -3,7 +3,9 @@ module Pages.Details exposing (Model, Msg(..), init, update, view)
 import Data
 import Html
 import Html.Attributes
+import Process
 import SharedState
+import Task
 
 
 type DetailsModel
@@ -13,11 +15,13 @@ type DetailsModel
 
 
 type alias Model =
-    { details : DetailsModel }
+    { details : DetailsModel
+    }
 
 
 type Msg
     = LoadBook (Maybe Int)
+    | BookLoaded (Result String Data.Book)
 
 
 init : Model
@@ -33,22 +37,38 @@ update _ msg model =
     in
     case msg of
         LoadBook n ->
-            ( { model | details = loadBook n }, Cmd.none, SharedState.NoUpdate )
+            ( model, loadBook n BookLoaded, SharedState.NoUpdate )
+
+        BookLoaded (Ok book) ->
+            ( { model | details = Loaded book }, Cmd.none, SharedState.NoUpdate )
+
+        BookLoaded (Err _) ->
+            ( { model | details = NotFound }, Cmd.none, SharedState.NoUpdate )
 
 
-loadBook : Maybe Int -> DetailsModel
-loadBook maybeId =
+loadBook : Maybe Int -> (Result String Data.Book -> Msg) -> Cmd Msg
+loadBook maybeId msg =
+    Task.perform msg <| slow <| Task.succeed (bookLoader maybeId)
+
+
+slow : Task.Task x a -> Task.Task x a
+slow task =
+    Process.sleep 1000.0 |> Task.andThen (\_ -> task)
+
+
+bookLoader : Maybe Int -> Result String Data.Book
+bookLoader maybeId =
     case maybeId of
         Nothing ->
-            NotFound
+            Result.Err <| "No id given."
 
         Just id ->
             case Data.findById id of
                 Nothing ->
-                    NotFound
+                    Result.Err <| "Not found " ++ String.fromInt id
 
                 Just book ->
-                    Loaded book
+                    Result.Ok book
 
 
 view : SharedState.SharedState -> Model -> Html.Html Msg
