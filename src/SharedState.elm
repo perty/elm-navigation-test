@@ -16,7 +16,7 @@ type alias SharedState =
 type SharedStateUpdate
     = NoUpdate
     | UpdateTime Time.Posix
-    | AddBookId Int
+    | AddVisitedBookId Int
 
 
 init : Browser.Navigation.Key -> SharedState
@@ -33,7 +33,7 @@ update sharedState sharedStateUpdate =
         UpdateTime time ->
             { sharedState | currentTime = Just time }
 
-        AddBookId id ->
+        AddVisitedBookId id ->
             { sharedState | visitedBooks = id :: sharedState.visitedBooks }
 
         NoUpdate ->
