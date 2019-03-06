@@ -18,6 +18,12 @@ type Msg
     = NavigateTo Int
 
 
+
+{-
+   For sake of simplicity, the list of books are here already. The Details page shows loading a book.
+-}
+
+
 init : Model
 init =
     { books = Data.data
@@ -30,7 +36,7 @@ update sharedState msg model =
         NavigateTo id ->
             ( model
             , Browser.Navigation.pushUrl sharedState.navKey (Routing.Helpers.reverseRoute (Routing.Helpers.DetailsRoute (Just id)))
-            , SharedState.AddBookId id
+            , SharedState.AddVisitedBookId id
             )
 
 

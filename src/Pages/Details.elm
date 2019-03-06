@@ -6,17 +6,23 @@ import Html.Attributes
 import SharedState
 
 
+type DetailsModel
+    = Initial
+    | NotFound
+    | Loaded Data.Book
+
+
 type alias Model =
-    { id : Maybe Int }
+    { details : DetailsModel }
 
 
 type Msg
-    = NoOp
+    = LoadBook (Maybe Int)
 
 
 init : Model
 init =
-    { id = Nothing }
+    { details = Initial }
 
 
 update : SharedState.SharedState -> Msg -> Model -> ( Model, Cmd Msg, SharedState.SharedStateUpdate )
@@ -25,25 +31,45 @@ update _ msg model =
         _ =
             Debug.log "Detail msg: " msg
     in
-    ( model, Cmd.none, SharedState.NoUpdate )
+    case msg of
+        LoadBook n ->
+            ( { model | details = loadBook n }, Cmd.none, SharedState.NoUpdate )
+
+
+loadBook : Maybe Int -> DetailsModel
+loadBook maybeId =
+    case maybeId of
+        Nothing ->
+            NotFound
+
+        Just id ->
+            case Data.findById id of
+                Nothing ->
+                    NotFound
+
+                Just book ->
+                    Loaded book
 
 
 view : SharedState.SharedState -> Model -> Html.Html Msg
 view shared model =
-    let
-        book =
-            Data.findById (Maybe.withDefault 0 model.id)
-    in
-    Html.div []
-        [ SharedState.view shared
-        , Html.hr [] []
-        , case book of
-            Nothing ->
-                Html.text "Book not found."
+    case model.details of
+        Initial ->
+            Html.div []
+                [ Html.text "Loading book"
+                ]
 
-            Just b ->
-                viewDetails b
-        ]
+        NotFound ->
+            Html.div []
+                [ Html.text "Book not found."
+                ]
+
+        Loaded book ->
+            Html.div []
+                [ SharedState.view shared
+                , Html.hr [] []
+                , viewDetails book
+                ]
 
 
 viewDetails : Data.Book -> Html.Html Msg

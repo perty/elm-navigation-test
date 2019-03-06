@@ -1,4 +1,4 @@
-module Routing.Router exposing (Model, Msg(..), init, update, view)
+module Routing.Router exposing (Model, Msg(..), init, newRouteCmd, update, view)
 
 import Browser
 import Html exposing (div)
@@ -7,6 +7,7 @@ import Pages.Home
 import Pages.Listing
 import Routing.Helpers
 import SharedState
+import Task
 import Url
 import Url.Parser
 
@@ -28,6 +29,24 @@ init url =
     }
 
 
+
+{-
+   A change of the route may require some tasks to be done, e.g. load a book given the id.
+   Also called from the Main.init function so we can do what is needed when we land on an URL
+   other than the top one. This makes it possible to bookmark a page.
+-}
+
+
+newRouteCmd : Routing.Helpers.Route -> Cmd Msg
+newRouteCmd route =
+    case route of
+        Routing.Helpers.DetailsRoute n ->
+            Task.succeed (DetailMsg (Pages.Details.LoadBook n)) |> Task.perform identity
+
+        _ ->
+            Cmd.none
+
+
 type Msg
     = UrlChange Url.Url
     | HomeMsg Pages.Home.Msg
@@ -39,8 +58,12 @@ update : SharedState.SharedState -> Msg -> Model -> ( Model, Cmd Msg, SharedStat
 update sharedState msg model =
     case Debug.log "Router msg: " msg of
         UrlChange location ->
-            ( { model | route = Routing.Helpers.parseUrl location }
-            , Cmd.none
+            let
+                route =
+                    Routing.Helpers.parseUrl location
+            in
+            ( { model | route = route }
+            , newRouteCmd route
             , SharedState.NoUpdate
             )
 
@@ -129,8 +152,8 @@ pageView sharedState model =
             Routing.Helpers.ListingRoute ->
                 Pages.Listing.view sharedState model.listingModel |> Html.map ListingMsg
 
-            Routing.Helpers.DetailsRoute n ->
-                Pages.Details.view sharedState (Pages.Details.Model n) |> Html.map DetailMsg
+            Routing.Helpers.DetailsRoute _ ->
+                Pages.Details.view sharedState model.detailsModel |> Html.map DetailMsg
 
             Routing.Helpers.NotFoundRoute ->
                 Html.h1 [] [ Html.text "Page not found." ]

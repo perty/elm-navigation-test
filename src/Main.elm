@@ -38,9 +38,12 @@ init _ url navKey =
     let
         _ =
             Debug.log "init location" (Url.toString url)
+
+        model =
+            initialModel url navKey
     in
-    ( initialModel url navKey
-    , Cmd.none
+    ( model
+    , Cmd.map RouterMsg <| Routing.Router.newRouteCmd model.routerModel.route
     )
 
 
