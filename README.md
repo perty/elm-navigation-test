@@ -5,12 +5,13 @@ parameters.
 This based on the shared state pattern by Ossi Hanhinen. 
 See https://github.com/ohanhi/elm-shared-state .
 
-## Goal
+## Goals
 
-I just wanted to make my own to thoroughly understand it.
 
 * Parse URL like http://host:port/details?id=2 even when
-that is the starting URL.
+that is the starting URL. Thus, you can bookmark a page.
+
+* Simulate loading of data. 
 
 * Use a Node server to catch all requests and return the index file. 
 Necessary behavior for a back end serving a SPA. 
