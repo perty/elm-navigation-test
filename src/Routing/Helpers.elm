@@ -1,4 +1,4 @@
-module Routing.Helpers exposing (Route(..), parseUrl, reverseRoute, routeParser)
+module Routing.Helpers exposing (Route(..), parseUrl, routeParser, routeToString)
 
 import Url
 import Url.Parser exposing ((<?>))
@@ -12,8 +12,8 @@ type Route
     | NotFoundRoute
 
 
-reverseRoute : Route -> String
-reverseRoute route =
+routeToString : Route -> String
+routeToString route =
     case Debug.log "reverseRoute " route of
         HomeRoute ->
             "/"

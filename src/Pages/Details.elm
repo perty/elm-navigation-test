@@ -47,7 +47,7 @@ update sharedState msg model =
 
         NavigateToListing ->
             ( model
-            , Browser.Navigation.pushUrl sharedState.navKey (Routing.Helpers.reverseRoute Routing.Helpers.ListingRoute)
+            , Browser.Navigation.pushUrl sharedState.navKey (Routing.Helpers.routeToString Routing.Helpers.ListingRoute)
             , SharedState.NoUpdate
             )
 

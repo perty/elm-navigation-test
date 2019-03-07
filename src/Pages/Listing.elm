@@ -35,7 +35,7 @@ update sharedState msg model =
     case msg of
         NavigateTo id ->
             ( model
-            , Browser.Navigation.pushUrl sharedState.navKey (Routing.Helpers.reverseRoute (Routing.Helpers.DetailsRoute (Just id)))
+            , Browser.Navigation.pushUrl sharedState.navKey (Routing.Helpers.routeToString (Routing.Helpers.DetailsRoute (Just id)))
             , SharedState.AddVisitedBookId id
             )
 

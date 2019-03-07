@@ -27,7 +27,7 @@ update sharedState msg model =
         NavigateTo route ->
             Debug.log "Home navigate to "
                 ( model
-                , Browser.Navigation.pushUrl sharedState.navKey (Routing.Helpers.reverseRoute route)
+                , Browser.Navigation.pushUrl sharedState.navKey (Routing.Helpers.routeToString route)
                 , SharedState.NoUpdate
                 )
 
