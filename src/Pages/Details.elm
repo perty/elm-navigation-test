@@ -1,9 +1,12 @@
 module Pages.Details exposing (Model, Msg(..), init, update, view)
 
+import Browser.Navigation
 import Data
 import Html
 import Html.Attributes
+import Html.Events
 import Process
+import Routing.Helpers
 import SharedState
 import Task
 
@@ -22,6 +25,7 @@ type alias Model =
 type Msg
     = LoadBook (Maybe Int)
     | BookLoaded (Result String Data.Book)
+    | NavigateToListing
 
 
 init : Model
@@ -30,12 +34,8 @@ init =
 
 
 update : SharedState.SharedState -> Msg -> Model -> ( Model, Cmd Msg, SharedState.SharedStateUpdate )
-update _ msg model =
-    let
-        _ =
-            Debug.log "Detail msg: " msg
-    in
-    case msg of
+update sharedState msg model =
+    case Debug.log "Detail msg: " msg of
         LoadBook n ->
             ( model, loadBook n BookLoaded, SharedState.NoUpdate )
 
@@ -44,6 +44,12 @@ update _ msg model =
 
         BookLoaded (Err _) ->
             ( { model | details = NotFound }, Cmd.none, SharedState.NoUpdate )
+
+        NavigateToListing ->
+            ( model
+            , Browser.Navigation.pushUrl sharedState.navKey (Routing.Helpers.reverseRoute Routing.Helpers.ListingRoute)
+            , SharedState.NoUpdate
+            )
 
 
 loadBook : Maybe Int -> (Result String Data.Book -> Msg) -> Cmd Msg
@@ -89,6 +95,8 @@ view shared model =
                 [ SharedState.view shared
                 , Html.hr [] []
                 , viewDetails book
+                , Html.hr [] []
+                , viewBottom
                 ]
 
 
@@ -104,6 +112,18 @@ viewDetails book =
                 [ Html.text book.url
                 ]
             ]
+        ]
+
+
+viewBottom : Html.Html Msg
+viewBottom =
+    Html.div []
+        [ Html.input
+            [ Html.Attributes.type_ "button"
+            , Html.Events.onClick NavigateToListing
+            , Html.Attributes.value "Back to listing"
+            ]
+            []
         ]
 
 
