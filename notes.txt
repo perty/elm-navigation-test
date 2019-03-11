@@ -1,0 +1,30 @@
+
+Kristian Lundström:
+Vi valde att inte exponera Page-meddelanden till den yttre Router modulen
+(som du gör här https://github.com/perty/elm-navigation-test/blob/master/src/Routing/Router.elm#L43)
+utan exponerade istället explicit en function vi kallar `routeInit` som i princip är som en init function
+fast den tar också föregående state.
+
+-- Router.elm
+updateUrl : Url -> Model -> ( Model, Stomp.Proc.RemoteProcedure Msg )
+updateUrl url model =
+    let
+        nextRoute =
+            parseUrl url
+
+        nextModel =
+            { model | route = nextRoute }
+    in
+    case nextRoute of
+        InboxRoute ->
+            let
+                ( nextInboxModel, stompProc ) =
+                    Inbox.initRoute model.inboxModel
+            in
+            ( { nextModel | inboxModel = nextInboxModel }
+            , Stomp.Proc.map InboxMsg stompProc
+            )
+
+Vinsten är väl att Router.elm behöver veta lite mindre om de innre modulerna vilket förhoppningvis gör det
+lite lättare att resonera kring när koden växer
+ps. det lite kryptiska `Stomp.Proc.RemoteProcedure Msg` i kodexemplet är i princip ett specialiserat `Cmd Msg`
