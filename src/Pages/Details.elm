@@ -42,7 +42,7 @@ update : SharedState.SharedState -> Msg -> Model -> ( Model, Cmd Msg, SharedStat
 update sharedState msg model =
     case Debug.log "Detail msg: " msg of
         LoadBook n ->
-            ( model, loadBook n BookLoaded, SharedState.NoUpdate )
+            ( { model | details = Initial }, loadBook n BookLoaded, SharedState.NoUpdate )
 
         BookLoaded (Ok book) ->
             ( { model | details = Loaded book }, Cmd.none, SharedState.NoUpdate )
