@@ -5,6 +5,11 @@ parameters.
 This based on the shared state pattern by Ossi Hanhinen. 
 See https://github.com/ohanhi/elm-shared-state .
 
+## Running
+
+Use the `run.sh` script to compile and start the server. The server is configured
+for SPA usage.
+
 ## Goals
 
 
