@@ -65,11 +65,11 @@ update msg model =
         TimeChange time ->
             updateTime model time
 
-        UrlChange url ->
-            updateRouter { model | url = url } (Routing.Router.UrlChange url)
-
         RouterMsg routerMsg ->
             updateRouter model routerMsg
+
+        UrlChange url ->
+            updateRouter { model | url = url } (Routing.Router.UrlChange url)
 
         LinkClicked urlRequest ->
             case urlRequest of
