@@ -7,7 +7,6 @@ import Pages.Home
 import Pages.Listing
 import Routing.Helpers
 import SharedState
-import Task
 import Url
 import Url.Parser
 
@@ -41,7 +40,7 @@ newRouteCmd : Routing.Helpers.Route -> Cmd Msg
 newRouteCmd route =
     case route of
         Routing.Helpers.DetailsRoute n ->
-            Task.succeed (DetailMsg (Pages.Details.LoadBook n)) |> Task.perform identity
+            Cmd.map DetailMsg (Pages.Details.initRoute n)
 
         _ ->
             Cmd.none

@@ -1,4 +1,4 @@
-module Pages.Details exposing (Model, Msg(..), init, update, view)
+module Pages.Details exposing (Model, Msg(..), init, initRoute, update, view)
 
 import Browser.Navigation
 import Data
@@ -31,6 +31,11 @@ type Msg
 init : Model
 init =
     { details = Initial }
+
+
+initRoute : Maybe Int -> Cmd Msg
+initRoute n =
+    Task.succeed (LoadBook n) |> Task.perform identity
 
 
 update : SharedState.SharedState -> Msg -> Model -> ( Model, Cmd Msg, SharedState.SharedStateUpdate )
