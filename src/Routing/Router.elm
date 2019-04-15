@@ -5,26 +5,28 @@ import Html exposing (div)
 import Pages.Details
 import Pages.Home
 import Pages.Listing
-import Routing.Helpers
+import Routing.Helpers exposing (Route(..))
 import SharedState
 import Url
 import Url.Parser
 
 
+type Page
+    = HomePage Pages.Home.Model
+    | ListingPage Pages.Listing.Model
+    | DetailsPage Pages.Details.Model
+
+
 type alias Model =
     { route : Routing.Helpers.Route
-    , homeModel : Pages.Home.Model
-    , listingModel : Pages.Listing.Model
-    , detailsModel : Pages.Details.Model
+    , currentPage : Page
     }
 
 
 init : Url.Url -> Model
 init url =
     { route = Maybe.withDefault Routing.Helpers.HomeRoute (Url.Parser.parse Routing.Helpers.routeParser url)
-    , homeModel = Pages.Home.init
-    , listingModel = Pages.Listing.init
-    , detailsModel = Pages.Details.init
+    , currentPage = HomePage Pages.Home.init
     }
 
 
@@ -54,80 +56,132 @@ type Msg
 
 
 update : SharedState.SharedState -> Msg -> Model -> ( Model, Cmd Msg, SharedState.SharedStateUpdate )
-update sharedState msg model =
-    case Debug.log "Router msg: " msg of
-        UrlChange location ->
+update sharedState rmsg model =
+    case Debug.log "Router page, message "( model.currentPage, rmsg ) of
+        ( _, UrlChange location ) ->
             let
                 route =
                     Routing.Helpers.parseUrl location
             in
-            ( { model | route = route }
+            ( { model
+                | currentPage = pageFromRoute route
+              }
             , newRouteCmd route
             , SharedState.NoUpdate
             )
 
-        HomeMsg homeMsg ->
-            updateHome sharedState model homeMsg
+        ( HomePage pageModel, HomeMsg msg ) ->
+            let
+                ( nextModel, cmd, sharedStateUpdate ) =
+                    Pages.Home.update sharedState msg pageModel
+            in
+            ( { model | currentPage = HomePage nextModel }
+            , Cmd.map HomeMsg cmd
+            , sharedStateUpdate
+            )
 
-        ListingMsg listingMsg ->
-            updateListing sharedState model listingMsg
+        ( ListingPage pageModel, ListingMsg msg ) ->
+            let
+                ( nextModel, cmd, sharedStateUpdate ) =
+                    Pages.Listing.update sharedState msg pageModel
+            in
+            ( { model | currentPage = ListingPage nextModel }
+            , Cmd.map ListingMsg cmd
+            , sharedStateUpdate
+            )
 
-        DetailMsg detailMsg ->
-            updateDetails sharedState model detailMsg
+        ( DetailsPage pageModel, DetailMsg msg ) ->
+            let
+                ( nextModel, cmd, sharedStateUpdate ) =
+                    Pages.Details.update sharedState msg pageModel
+            in
+            ( { model | currentPage = DetailsPage nextModel }
+            , Cmd.map DetailMsg cmd
+            , sharedStateUpdate
+            )
 
-
-updateHome : SharedState.SharedState -> Model -> Pages.Home.Msg -> ( Model, Cmd Msg, SharedState.SharedStateUpdate )
-updateHome sharedState model msg =
-    let
-        ( nextModel, cmd, sharedStateUpdate ) =
-            Pages.Home.update sharedState msg model.homeModel
-    in
-    ( { model | homeModel = nextModel }
-    , Cmd.map HomeMsg cmd
-    , sharedStateUpdate
-    )
-
-
-updateListing : SharedState.SharedState -> Model -> Pages.Listing.Msg -> ( Model, Cmd Msg, SharedState.SharedStateUpdate )
-updateListing sharedState model msg =
-    let
-        ( nextModel, cmd, sharedStateUpdate ) =
-            Pages.Listing.update sharedState msg model.listingModel
-    in
-    ( { model | listingModel = nextModel }
-    , Cmd.map ListingMsg cmd
-    , sharedStateUpdate
-    )
+        ( _, _ ) ->
+            ( model, Cmd.none, SharedState.NoUpdate )
 
 
-updateDetails : SharedState.SharedState -> Model -> Pages.Details.Msg -> ( Model, Cmd Msg, SharedState.SharedStateUpdate )
-updateDetails sharedState model msg =
-    let
-        ( nextModel, cmd, sharedStateUpdate ) =
-            Pages.Details.update sharedState msg model.detailsModel
-    in
-    ( { model | detailsModel = nextModel }
-    , Cmd.map DetailMsg cmd
-    , sharedStateUpdate
-    )
+
+{-
+   updateHome : SharedState.SharedState -> Model -> Pages.Home.Msg -> ( Model, Cmd Msg, SharedState.SharedStateUpdate )
+   updateHome sharedState model msg =
+       let
+           (HomePage pageModel) =
+               model.currentPage
+
+           ( nextModel, cmd, sharedStateUpdate ) =
+               Pages.Home.update sharedState msg pageModel
+       in
+       ( { model | currentPage = HomePage nextModel }
+       , Cmd.map HomeMsg cmd
+       , sharedStateUpdate
+       )
+
+
+   updateListing : SharedState.SharedState -> Model -> Pages.Listing.Msg -> ( Model, Cmd Msg, SharedState.SharedStateUpdate )
+   updateListing sharedState model msg =
+       let
+           (ListingPage pageModel) =
+               model.currentPage
+
+           ( nextModel, cmd, sharedStateUpdate ) =
+               Pages.Listing.update sharedState msg pageModel
+       in
+       ( { model | currentPage = ListingPage nextModel }
+       , Cmd.map ListingMsg cmd
+       , sharedStateUpdate
+       )
+
+
+   updateDetails : SharedState.SharedState -> Model -> Pages.Details.Msg -> ( Model, Cmd Msg, SharedState.SharedStateUpdate )
+   updateDetails sharedState model msg =
+       let
+           (DetailsPage pageModel) =
+               model.currentPage
+
+           ( nextModel, cmd, sharedStateUpdate ) =
+               Pages.Details.update sharedState msg pageModel
+       in
+       ( { model | currentPage = DetailsPage nextModel }
+       , Cmd.map DetailMsg cmd
+       , sharedStateUpdate
+       )
+
+-}
+
+
+pageFromRoute : Route -> Page
+pageFromRoute route =
+    case route of
+        HomeRoute ->
+            HomePage Pages.Home.init
+
+        ListingRoute ->
+            ListingPage Pages.Listing.init
+
+        DetailsRoute _ ->
+            DetailsPage Pages.Details.init
+
+        NotFoundRoute ->
+            HomePage Pages.Home.init
 
 
 view : (Msg -> msg) -> SharedState.SharedState -> Model -> Browser.Document msg
 view msgMapper sharedState model =
     let
         title =
-            case model.route of
-                Routing.Helpers.HomeRoute ->
+            case model.currentPage of
+                HomePage _ ->
                     "Home"
 
-                Routing.Helpers.ListingRoute ->
+                ListingPage _ ->
                     "Listing"
 
-                Routing.Helpers.DetailsRoute n ->
-                    "Details for id " ++ String.fromInt (Maybe.withDefault 0 n)
-
-                Routing.Helpers.NotFoundRoute ->
-                    "Not found"
+                DetailsPage _ ->
+                    "Details"
 
         body =
             div []
@@ -144,16 +198,13 @@ view msgMapper sharedState model =
 pageView : SharedState.SharedState -> Model -> Html.Html Msg
 pageView sharedState model =
     Html.div []
-        [ case model.route of
-            Routing.Helpers.HomeRoute ->
-                Pages.Home.view sharedState model.homeModel |> Html.map HomeMsg
+        [ case model.currentPage of
+            HomePage pageModel ->
+                Pages.Home.view sharedState pageModel |> Html.map HomeMsg
 
-            Routing.Helpers.ListingRoute ->
-                Pages.Listing.view sharedState model.listingModel |> Html.map ListingMsg
+            ListingPage pageModel ->
+                Pages.Listing.view sharedState pageModel |> Html.map ListingMsg
 
-            Routing.Helpers.DetailsRoute _ ->
-                Pages.Details.view sharedState model.detailsModel |> Html.map DetailMsg
-
-            Routing.Helpers.NotFoundRoute ->
-                Html.h1 [] [ Html.text "Page not found." ]
+            DetailsPage pageModel ->
+                Pages.Details.view sharedState pageModel |> Html.map DetailMsg
         ]
